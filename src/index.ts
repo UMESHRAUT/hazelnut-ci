@@ -1,4 +1,6 @@
 import { Application } from "probot";
+import { HNConfig } from "./models";
+import { HNDefaultConfig } from "./configs";
 
 export = (app: Application) => {
   app.log("Yay, the app was loaded!");
@@ -11,21 +13,22 @@ export = (app: Application) => {
     context.github.issues.createComment(issueComment);
   });
 
-  app.on("push", async context => {
-    app.log("Pushed changes");
+  app.on(
+    [
+      "push",
+      "pull_request.opened",
+      "pull_request.reopend",
+      "pull_request.edited"
+    ],
+    async context => {
+      app.log(
+        `Pushed changes to ${context.payload.repository.name} | before: ${context.payload.before} | after: ${context.payload.after}`
+      );
 
-    try {
-      const repo = context.repo();
-
-      const content = await context.github.git.getRef({
-        owner: repo.owner,
-        repo: repo.repo,
-        ref: "heads/master"
-      });
-
-      app.log(content.data);
-    } catch (e) {
-      app.log(e);
+      const config = (await context.config(
+        "hazelnut.yml",
+        HNDefaultConfig
+      )) as HNConfig;
     }
-  });
+  );
 };
