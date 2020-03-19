@@ -16,6 +16,7 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc && (tsc -w --preserveWatchOutput & nodemon)",
+    "start:redis": "docker run --name hazelnut-ci-redis -d redis",
     "dev": "npm run build:watch",
     "start": "probot run ./lib/index.js",
     "lint": "standard **/*.ts --fix",
@@ -24,12 +25,16 @@
     "test:push": "node_modules/.bin/probot receive -e push -p test/fixtures/push.json ./lib/index.js"
   },
   "dependencies": {
-    "probot": "^9.5.3"
+    "probot": "^9.5.3",
+    "redis": "^3.0.2",
+    "uuid": "^7.0.2"
   },
   "devDependencies": {
     "@types/jest": "^25.1.0",
     "@types/nock": "^11.1.0",
     "@types/node": "^13.1.0",
+    "@types/redis": "^2.8.16",
+    "@types/uuid": "^7.0.2",
     "@typescript-eslint/parser": "^2.4.0",
     "eslint-plugin-typescript": "^0.14.0",
     "jest": "^24.9.0",
