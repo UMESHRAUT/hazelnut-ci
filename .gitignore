@@ -8,3 +8,6 @@ coverage
 lib/
 parsed_yaml.json
 example.yml
+repositories
+local
+db
