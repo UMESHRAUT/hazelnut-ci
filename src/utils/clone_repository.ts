@@ -8,23 +8,22 @@ import fs from "fs";
  * @param context - Gets the default passed context from the root application.
  */
 export async function cloneRepository(
+  rootPath: string,
   context: Context<Webhooks.WebhookPayloadCheckRun>
 ) {
   // Gets all the necessary info from `context.payload`
   const {
     repository: {
-      full_name,
       owner: { login },
       name
     },
     check_run: {
-      check_suite: { head_branch, head_sha }
+      check_suite: { head_branch }
     }
   } = context.payload;
 
   // Root directory where everything will live its a combination of repository
   // full_name: "username/repository_name" & commit_id
-  const rootPath = `./repositories/${full_name}_${head_sha}`;
 
   await fs.promises.mkdir(rootPath, {
     recursive: true

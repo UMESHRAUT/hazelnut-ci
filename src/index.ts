@@ -1,6 +1,6 @@
 import { Application, Context } from "probot";
 import Webhooks from "@octokit/webhooks";
-import { getConfig, cloneRepository } from "./utils";
+import { getConfig, cloneRepository, removeRepository } from "./utils";
 import PouchDB from "pouchdb";
 import PouchDBFind from "pouchdb-find";
 // import { HeadCommit } from "./models";
@@ -84,12 +84,15 @@ export = (app: Application) => {
       const {
         repository: {
           name,
+          full_name,
           owner: { login }
         },
-        check_run: { id }
+        check_run: { id, head_sha }
       } = context.payload;
 
       const startTime = new Date();
+
+      const rootPath = `./repositories/${full_name}_${head_sha}`;
 
       app.log("repoOwner:", login);
       app.log("repoName:", name);
@@ -110,12 +113,14 @@ export = (app: Application) => {
       });
 
       // clone the repository
-      cloneRepository(context);
+      await cloneRepository(rootPath, context);
 
       // * Based on the active flow run a check and select build flow.
       if (entrypoint === "workflows") {
       } else if (entrypoint === "build") {
       }
+
+      await removeRepository(rootPath, 1000);
     }
   );
 };
