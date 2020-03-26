@@ -1,20 +1,16 @@
 import { Application, Context } from "probot";
 import Webhooks from "@octokit/webhooks";
-import { getConfig, connectRedis } from "./utils";
-import uuid from "uuid/v4";
+import { getConfig } from "./utils";
+import PouchDB from "pouchdb";
+import PouchDBFind from "pouchdb-find";
+import { HeadCommit } from "./models";
+// import uuid from "uuid/v4";
+
+PouchDB.plugin(PouchDBFind);
+const db = new PouchDB("local");
 
 // TODO: Figure out the structure of the database
 export = (app: Application) => {
-  const { get, set } = connectRedis();
-
-  app.on("issues.opened", async context => {
-    const issueComment = context.issue({
-      body: "Thanks for opening this issue!"
-    });
-
-    context.github.issues.createComment(issueComment);
-  });
-
   // TODO: Persistent build - same thing with event `check_run.rerequested`
   // * 1. make new entry in the database using uuidv4
   // * 2. initialize the first check based on the steps mentioned in the config
@@ -37,21 +33,23 @@ export = (app: Application) => {
         name,
         owner: { login }
       },
-      after
+      head_commit
     } = context.payload;
+
+    const { id } = head_commit! as HeadCommit;
 
     await context.github.checks.create({
       name: "Default Name",
       owner: login,
       repo: name,
-      head_sha: after
+      head_sha: id
     });
   });
 
   app.on(
     "check_run.rerequested",
     async (context: Context<Webhooks.WebhookPayloadCheckRun>) => {
-      const { config, entrypoint, error } = await getConfig(context, app)!;
+      const { entrypoint, error } = await getConfig(context, app)!;
 
       // * If there is an error close imediately
       if (error) {
@@ -86,7 +84,7 @@ export = (app: Application) => {
   app.on(
     "check_run.created",
     async (context: Context<Webhooks.WebhookPayloadCheckRun>) => {
-      const { config, entrypoint, error } = await getConfig(context, app)!;
+      const { entrypoint, error } = await getConfig(context, app)!;
 
       // * If there is an error close imediately
       if (error) {
