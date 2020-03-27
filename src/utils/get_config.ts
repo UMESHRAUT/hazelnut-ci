@@ -1,6 +1,6 @@
 import { Context, Application } from "probot";
 import { HNDefaultConfig } from "../configs";
-import { HNConfig } from "../models";
+import { HNConfig, EntryPoint } from "../models";
 import Webhooks from "@octokit/webhooks";
 
 const CONFIG_FILENAME = "hazelnut.yml";
@@ -10,7 +10,7 @@ interface GetConfigResult {
 
   error?: string;
 
-  entrypoint?: "workflows" | "build" | "no_entry";
+  entryPoint?: EntryPoint;
 }
 
 export async function getConfig(
@@ -21,7 +21,7 @@ export async function getConfig(
   >,
   app: Application
 ): Promise<GetConfigResult> {
-  let result: GetConfigResult = { entrypoint: "no_entry" };
+  let result: GetConfigResult = { entryPoint: "no_entry" };
 
   const { name } = context.payload.repository;
 
@@ -71,12 +71,12 @@ export async function getConfig(
     // * Notify the user that build has started and update the entry build for the project
     // * is "workflow" || "build".
 
-    result.entrypoint = "build";
+    result.entryPoint = "build";
 
     return result;
   }
 
-  result.entrypoint = "workflows";
+  result.entryPoint = "workflows";
 
   return result;
 }

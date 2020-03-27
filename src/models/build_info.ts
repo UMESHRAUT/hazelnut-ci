@@ -1,9 +1,12 @@
 import { HNConfig } from "./config";
+import Webhooks from "@octokit/webhooks";
+
+export type EntryPoint = "workflows" | "build" | "no_entry";
 
 export interface BuildInfo {
   _id: string;
 
-  entryPoint: string;
+  entryPoint?: EntryPoint;
 
   config?: HNConfig;
 
@@ -22,6 +25,8 @@ export interface BuildInfo {
   workflowOutput: Array<Output>;
 
   jobOutput: Array<Output>;
+
+  user: Webhooks.PayloadRepositoryOwner;
 }
 
 interface Output {

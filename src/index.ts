@@ -3,11 +3,14 @@ import Webhooks from "@octokit/webhooks";
 import { getConfig, cloneRepository, removeRepository } from "./utils";
 import PouchDB from "pouchdb";
 import PouchDBFind from "pouchdb-find";
-// import { HeadCommit } from "./models";
+// import Docker from "dockerode";
+import { BuildInfo } from "./models";
 // import uuid from "uuid/v4";
 
+// const docker = new Docker();
+
 PouchDB.plugin(PouchDBFind);
-// const db = new PouchDB("local");
+const db = new PouchDB("local");
 
 // TODO: Figure out the structure of the database
 export = (app: Application) => {
@@ -15,7 +18,7 @@ export = (app: Application) => {
   // * 2. initialize the first check based on the steps mentioned in the config
   // * 3. Persist the check id in the database to later update the checks
   app.on("push", async (context: Context<Webhooks.WebhookPayloadPush>) => {
-    const { error } = await getConfig(context, app)!;
+    const { error, entryPoint, config } = await getConfig(context, app)!;
 
     // * If there is an error close imediately adn notify the User
     // * Email or any other method
@@ -26,10 +29,30 @@ export = (app: Application) => {
     const {
       repository: {
         name,
-        owner: { login }
+        full_name,
+        owner: { login },
+        owner
       },
       after
     } = context.payload;
+
+    const rootPath = `./repositories/${full_name}_${after}`;
+
+    const startTime = new Date();
+
+    const doc: BuildInfo = {
+      _id: after,
+      entryPoint,
+      completed: false,
+      config,
+      user: owner,
+      workflowOutput: [],
+      jobOutput: [],
+      repoPath: rootPath,
+      startTime
+    };
+
+    db.put(doc);
 
     await context.github.checks.create({
       name: "Integration",
@@ -42,7 +65,7 @@ export = (app: Application) => {
   app.on(
     "check_run.rerequested",
     async (context: Context<Webhooks.WebhookPayloadCheckRun>) => {
-      const { error } = await getConfig(context, app)!;
+      const { error, entryPoint, config } = await getConfig(context, app)!;
 
       // * If there is an error close imediately adn notify the User
       // * Email or any other method
@@ -53,10 +76,30 @@ export = (app: Application) => {
       const {
         repository: {
           name,
-          owner: { login }
+          full_name,
+          owner: { login },
+          owner
         },
-        check_run: { head_sha = "" }
+        check_run: { head_sha }
       } = context.payload;
+
+      const rootPath = `./repositories/${full_name}_${head_sha}`;
+
+      const startTime = new Date();
+
+      const doc: BuildInfo = {
+        _id: head_sha,
+        entryPoint,
+        completed: false,
+        config,
+        user: owner,
+        workflowOutput: [],
+        jobOutput: [],
+        repoPath: rootPath,
+        startTime
+      };
+
+      db.put(doc);
 
       await context.github.checks.create({
         name: "Default Name",
@@ -73,35 +116,17 @@ export = (app: Application) => {
   app.on(
     "check_run.created",
     async (context: Context<Webhooks.WebhookPayloadCheckRun>) => {
-      const { entrypoint, error } = await getConfig(context, app)!;
-
-      // * If there is an error close imediately adn notify the User
-      // * Email or any other method
-      if (error) {
-        return;
-      }
-
       const {
         repository: {
           name,
-          full_name,
           owner: { login }
         },
         check_run: { id, head_sha }
       } = context.payload;
 
-      const startTime = new Date();
+      const doc = (await db.get(head_sha)) as BuildInfo;
 
-      const rootPath = `./repositories/${full_name}_${head_sha}`;
-
-      app.log("repoOwner:", login);
-      app.log("repoName:", name);
-      app.log("CheckRun:", id);
-
-      app.log(
-        "GitHub API Update Check with start time: ",
-        startTime.toISOString()
-      );
+      const started_at = new Date(doc.startTime).toISOString();
 
       // Update the Check to status "in_progress"
       await context.github.checks.update({
@@ -109,18 +134,18 @@ export = (app: Application) => {
         repo: name,
         check_run_id: id,
         status: "in_progress",
-        started_at: startTime.toISOString()
+        started_at
       });
 
       // clone the repository
-      await cloneRepository(rootPath, context);
+      await cloneRepository(doc.repoPath, context);
 
       // * Based on the active flow run a check and select build flow.
-      if (entrypoint === "workflows") {
-      } else if (entrypoint === "build") {
+      if (doc.entryPoint === "workflows") {
+      } else if (doc.entryPoint === "build") {
       }
 
-      await removeRepository(rootPath, 1000);
+      await removeRepository(doc.repoPath, 1000);
     }
   );
 };
