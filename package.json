@@ -25,12 +25,14 @@
     "test:check-run": "node_modules/.bin/probot receive -e check_run.created -p test/fixtures/check-run.json ./lib/index.js"
   },
   "dependencies": {
+    "dockerode": "^3.1.0",
     "pouchdb": "^7.2.1",
     "pouchdb-find": "^7.2.1",
     "probot": "^9.5.3",
     "uuid": "^7.0.2"
   },
   "devDependencies": {
+    "@types/dockerode": "^2.5.26",
     "@types/jest": "^25.1.0",
     "@types/nock": "^11.1.0",
     "@types/node": "^13.1.0",
