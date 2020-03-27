@@ -1,4 +1,4 @@
-import { Context, Application } from "probot";
+import { Context } from "probot";
 import { HNDefaultConfig } from "../configs";
 import { HNConfig, EntryPoint } from "../models";
 import Webhooks from "@octokit/webhooks";
@@ -18,8 +18,7 @@ export async function getConfig(
     | Webhooks.WebhookPayloadPush
     | Webhooks.WebhookPayloadPullRequest
     | Webhooks.WebhookPayloadCheckRun
-  >,
-  app: Application
+  >
 ): Promise<GetConfigResult> {
   let result: GetConfigResult = { entryPoint: "no_entry" };
 
@@ -35,7 +34,7 @@ export async function getConfig(
   // * Notify user that there are no config files in the project
   if (!config) {
     // TODO: Notify user
-    app.log(`Hazelnut CI is not configured for ${name}`);
+    console.log(`Hazelnut CI is not configured for ${name}`);
 
     result.error = "No config found";
 
@@ -44,7 +43,7 @@ export async function getConfig(
 
   // * Check to see if hazelnut-ci is active or not
   if (!config.active) {
-    app.log(`Hazelnut CI is disabled for ${name}`);
+    console.log(`Hazelnut CI is disabled for ${name}`);
 
     result.error = "Hazelnut CI is not active";
 
@@ -57,7 +56,7 @@ export async function getConfig(
     // * If not notify the user. and close the loop.
     if (!config!.jobs["build"]) {
       // TODO: Notify that the config file does not contain an entry point
-      app.log(
+      console.log(
         `Hazelnut CI did not find any entry point no 'workflows' or a job name 'build': ${name}`
       );
 
