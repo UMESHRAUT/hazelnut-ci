@@ -98,9 +98,33 @@ export async function checkRunCreated(
     } catch (e) {
       console.error(e.stderr);
 
+      const completed_at = new Date().toISOString();
+
+      await context.github.checks.update({
+        owner: login,
+        repo: name,
+        check_run_id: id,
+        status: "completed",
+        started_at,
+        completed_at,
+        conclusion: "failure"
+      });
+
       //TODO: Notify of failure
     }
   }
+
+  const completed_at = new Date().toISOString();
+
+  await context.github.checks.update({
+    owner: login,
+    repo: name,
+    check_run_id: id,
+    status: "completed",
+    started_at,
+    completed_at,
+    conclusion: "success"
+  });
 
   await removeRepository(doc.repoPath, 2000);
 
