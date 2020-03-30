@@ -25,6 +25,7 @@
     "test:check-run": "node_modules/.bin/probot receive -e check_run.created -p test/fixtures/check-run-test_1.json ./lib/index.js"
   },
   "dependencies": {
+    "@sendgrid/mail": "^6.5.5",
     "docker-cli-js": "^2.7.1",
     "pouchdb": "^7.2.1",
     "pouchdb-find": "^7.2.1",

@@ -1,6 +1,6 @@
 import { Context } from "probot";
 import Webhooks from "@octokit/webhooks";
-import { getConfig } from "../utils";
+import { getConfig, sendMail } from "../utils";
 import { BuildInfo } from "../models";
 
 export async function pullRequest(
@@ -9,23 +9,27 @@ export async function pullRequest(
 ) {
   const { error, entryPoint, config } = await getConfig(context)!;
 
-  // * If there is an error close imediately adn notify the User
-  // * Email or any other method
-  if (error) {
-    return;
-  }
-
   const {
     repository: {
       name,
       full_name,
-      owner: { login },
+      owner: { login, email },
       owner
     },
     pull_request: {
       head: { sha }
     }
   } = context.payload;
+
+  if (error) {
+    await sendMail(
+      email!,
+      "Project Build terminated",
+      `Hi ${login}, \n Your build for project: ${name} is terminated  due to an error\n ${error}\n\n Regards, \nHazelnut-CI team`
+    );
+
+    return;
+  }
 
   const rootPath = `./repositories/${full_name}_${sha}`;
 
