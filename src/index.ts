@@ -1,10 +1,10 @@
 import { Application } from "probot";
 import PouchDB from "pouchdb";
 import PouchDBFind from "pouchdb-find";
-import Docker from "dockerode";
+// import Docker from "dockerode";
 import { pushTrigger, checkRunRerequested, checkRunCreated } from "./triggers";
 
-const docker = new Docker();
+// const docker = new Docker();
 
 PouchDB.plugin(PouchDBFind);
 const db = new PouchDB("local");
@@ -15,5 +15,5 @@ export = (app: Application) => {
 
   app.on("check_run.rerequested", context => checkRunRerequested(context, db));
 
-  app.on("check_run.created", context => checkRunCreated(context, db, docker));
+  app.on("check_run.created", context => checkRunCreated(context, db));
 };

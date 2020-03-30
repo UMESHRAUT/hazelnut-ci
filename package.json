@@ -22,10 +22,10 @@
     "test": "jest && standard **/*.ts",
     "test:watch": "jest --watch --notify --notifyMode=change --coverage",
     "test:push": "node_modules/.bin/probot receive -e push -p test/fixtures/push.json ./lib/index.js",
-    "test:check-run": "node_modules/.bin/probot receive -e check_run.created -p test/fixtures/check-run.json ./lib/index.js"
+    "test:check-run": "node_modules/.bin/probot receive -e check_run.created -p test/fixtures/check-run-test_1.json ./lib/index.js"
   },
   "dependencies": {
-    "dockerode": "^3.1.0",
+    "docker-cli-js": "^2.7.1",
     "pouchdb": "^7.2.1",
     "pouchdb-find": "^7.2.1",
     "probot": "^9.5.3",
