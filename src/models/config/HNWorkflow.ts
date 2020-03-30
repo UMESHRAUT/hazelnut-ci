@@ -8,7 +8,7 @@
  * A job can have the keys requires, context, type, and filters.
  */
 export interface HNWorkflowJob {
-  jobs: { [x: string]: HNWorkflowJobItem };
+  jobs: [{ [x: string]: HNWorkflowJobItem }];
 }
 
 export interface HNWorkflowJobItem {
