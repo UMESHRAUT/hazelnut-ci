@@ -2,6 +2,7 @@ import { dockerCommand } from "docker-cli-js";
 import { HNJob } from "../models/config/HNJob";
 import { HNRun } from "../models/config/HNRun";
 import { BuildInfo } from "../models";
+import { spawn } from "child_process";
 
 export async function runJob(jobName: string, doc: BuildInfo) {
   const build = doc.config?.jobs[jobName] as HNJob;
@@ -16,11 +17,15 @@ export async function runJob(jobName: string, doc: BuildInfo) {
   let environmentVariables: string = "";
 
   for (const env of Object.keys(build.environment)) {
-    environmentVariables += `${env}=${build.environment[env]} `;
+    environmentVariables += `-e ${env}='${build.environment[env]}' \ `;
   }
 
   const containerResponse = await dockerCommand(
-    `container run -e ${environmentVariables} -dt ${image}`
+    `run ${environmentVariables} -dt ${image}`
+  );
+
+  await dockerCommand(
+    `container exec ${containerResponse.containerId} sh -c 'echo "$FIREBASE_DEPLOY_TOKEN"'`
   );
 
   const cleanWorkDirectory = build.working_directory.replace("~/", "");
@@ -29,12 +34,17 @@ export async function runJob(jobName: string, doc: BuildInfo) {
     `exec -i ${containerResponse.containerId} mkdir ${cleanWorkDirectory}`
   );
 
-  await dockerCommand(
-    `cp ${doc.repoPath}/. ${containerResponse.containerId}:${cleanWorkDirectory}`
-  );
+  await spawn(`docker`, [
+    "cp",
+    "-a",
+    `${doc.repoPath}/.`,
+    `${containerResponse.containerId}:${cleanWorkDirectory}`,
+  ]);
+
+  await setTimeout(() => {}, 2000);
 
   await dockerCommand(
-    `container exec ${containerResponse.containerId} sh -c "cd ${cleanWorkDirectory}/src ; ls -al"`
+    `container exec ${containerResponse.containerId} sh -c "ls -al ${cleanWorkDirectory}/public"`
   );
 
   for (const step of build.steps) {

@@ -27,6 +27,8 @@ export interface BuildInfo {
   jobOutput: Array<Output>;
 
   user: Webhooks.PayloadRepositoryOwner;
+
+  path: String;
 }
 
 interface Output {

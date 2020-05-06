@@ -14,9 +14,9 @@ export async function pushTrigger(
       name,
       full_name,
       owner: { login, email },
-      owner
+      owner,
     },
-    after
+    after,
   } = context.payload;
 
   if (error) {
@@ -29,7 +29,7 @@ export async function pushTrigger(
     return;
   }
 
-  const rootPath = `./repositories/${full_name}_${after}`;
+  const rootPath = `repositories/${full_name}_${after}`;
 
   const startTime = new Date();
 
@@ -42,7 +42,8 @@ export async function pushTrigger(
     workflowOutput: [],
     jobOutput: [],
     repoPath: rootPath,
-    startTime
+    path: `${name}_${after}`,
+    startTime,
   };
 
   db.put(doc);
@@ -51,6 +52,6 @@ export async function pushTrigger(
     name: "Integration",
     owner: login,
     repo: name,
-    head_sha: after
+    head_sha: after,
   });
 }

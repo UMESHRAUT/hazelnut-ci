@@ -11,13 +11,13 @@ export async function checkRunCreated(
   const {
     repository: {
       name,
-      owner: { login, email }
+      owner: { login, email },
     },
     check_run: {
       id,
       head_sha,
-      check_suite: { head_branch }
-    }
+      check_suite: { head_branch },
+    },
   } = context.payload;
 
   const doc = (await db.get(head_sha)) as BuildInfo;
@@ -36,7 +36,7 @@ export async function checkRunCreated(
     repo: name,
     check_run_id: id,
     status: "in_progress",
-    started_at
+    started_at,
   });
 
   try {
@@ -91,7 +91,7 @@ export async function checkRunCreated(
       status: "completed",
       started_at,
       completed_at,
-      conclusion: "success"
+      conclusion: "success",
     });
 
     await sendMail(
@@ -117,9 +117,9 @@ export async function checkRunCreated(
       status: "completed",
       started_at,
       completed_at,
-      conclusion: "failure"
+      conclusion: "failure",
     });
   }
 
-  await removeRepository(doc.repoPath, 2000);
+  await removeRepository(doc.repoPath, 5000);
 }

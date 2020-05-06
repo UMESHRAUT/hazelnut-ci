@@ -14,11 +14,11 @@ export async function pullRequest(
       name,
       full_name,
       owner: { login, email },
-      owner
+      owner,
     },
     pull_request: {
-      head: { sha }
-    }
+      head: { sha },
+    },
   } = context.payload;
 
   if (error) {
@@ -31,7 +31,7 @@ export async function pullRequest(
     return;
   }
 
-  const rootPath = `./repositories/${full_name}_${sha}`;
+  const rootPath = `repositories/${full_name}_${sha}`;
 
   const startTime = new Date();
 
@@ -44,7 +44,8 @@ export async function pullRequest(
     workflowOutput: [],
     jobOutput: [],
     repoPath: rootPath,
-    startTime
+    path: `${name}_${sha}`,
+    startTime,
   };
 
   db.put(doc);
@@ -53,6 +54,6 @@ export async function pullRequest(
     name: "Integration",
     owner: login,
     repo: name,
-    head_sha: sha
+    head_sha: sha,
   });
 }

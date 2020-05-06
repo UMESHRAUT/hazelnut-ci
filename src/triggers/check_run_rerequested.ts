@@ -14,9 +14,9 @@ export async function checkRunRerequested(
       name,
       full_name,
       owner: { login, email },
-      owner
+      owner,
     },
-    check_run: { head_sha }
+    check_run: { head_sha },
   } = context.payload;
 
   if (error) {
@@ -29,7 +29,7 @@ export async function checkRunRerequested(
     return;
   }
 
-  const rootPath = `./repositories/${full_name}_${head_sha}`;
+  const rootPath = `repositories/${full_name}_${head_sha}`;
 
   const startTime = new Date();
 
@@ -42,7 +42,8 @@ export async function checkRunRerequested(
     workflowOutput: [],
     jobOutput: [],
     repoPath: rootPath,
-    startTime
+    path: `${name}_${head_sha}`,
+    startTime,
   };
 
   db.put(doc);
@@ -51,6 +52,6 @@ export async function checkRunRerequested(
     name: "Default Name",
     owner: login,
     repo: name,
-    head_sha
+    head_sha,
   });
 }
